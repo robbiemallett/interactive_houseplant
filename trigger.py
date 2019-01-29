@@ -10,10 +10,10 @@ timelast = datetime.datetime.now()
 timelast = timelast.replace(day = timelast.day - 2)
 timelast = timelast.replace(hour = timelast.hour - 2)
 
-APP_KEY = "9wpgR7e0y4Gg6GLR1RDshn9fa"
-APP_SECRET = 'Opgya3uigAwpNe0yJDbE8Daf6m5VNVvdFiNwxlZttqgCUjVlAt'
-OAUTH_TOKEN = '1085612744244629505-CGqdAE3kKnYpo9wNGLwffedlKnqr7V'
-OAUTH_TOKEN_SECRET = 'JmPsfcoQyi16hx1SHT0T9sNeBnSfA7R7PyeHoYcCZF9ym'
+APP_KEY = "XX"
+APP_SECRET = 'XX'
+OAUTH_TOKEN = 'XX'
+OAUTH_TOKEN_SECRET = 'XX'
 
 twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 
