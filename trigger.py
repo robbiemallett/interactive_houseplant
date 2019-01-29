@@ -40,13 +40,13 @@ def water(tweet_str, scr_name): #the function that waters the plant
     time.sleep(2)
     camera.stop_recording()
     camera.stop_preview()
-    os.system("MP4Box -add plantvid.h264 plantvid.mp4")
+    os.system("MP4Box -add plantvid.h264 plantvid.mp4") #converts the .h264 file to .mp4 (twitter compatible)
     time.sleep(3)
     timerightnow = datetime.datetime.now().strftime("%H:%M:%S")
     timesaver = datetime.datetime.now()
     os.system("rm plantvid.h264")
-    with open("/home/pi/Documents/plantvid.mp4", 'rb') as vid: #this "with open" section is quite buggy - be very careful
-        response = twitter.upload_video(media=vid, media_type='video/mp4')
+    with open("/home/pi/Documents/plantvid.mp4", 'rb') as vid: #this "with open" section is quite buggy - be very careful with changes
+        response = twitter.upload_video(media=vid, media_type='video/mp4') #uploads video to twitter media server
         print(response['media_id'])
         speech = str("@{} You helped me water myself at {}".format(scr_name, timerightnow))
         print(speech) 
@@ -54,7 +54,7 @@ def water(tweet_str, scr_name): #the function that waters the plant
         #The module "endpoints.py" needs every mention of "StringIO" changed to "BytesIO" when used on a raspberry pi.
         #Nightmare because it works when testing on a windows comp, but needs changing for RPi!
         twitter.update_status(status=speech, media_ids=[response['media_id']], in_reply_to_status_id=tweet_str)
-    pickle_out = open("timefile", "wb")
+    pickle_out = open("timefile", "wb") #records the time of last watering
     print(timesaver)
     pickle.dump(timesaver, pickle_out)
     pickle_out.close
