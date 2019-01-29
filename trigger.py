@@ -1,3 +1,5 @@
+# A raspberry pi zero is connected via a relay to a 5V pump. 
+
 import time
 import datetime
 from picamera import PiCamera
@@ -5,26 +7,24 @@ import RPi.GPIO as GPIO
 import os
 import pickle
 from twython import Twython, TwythonError, TwythonStreamer
-starting = 0
-timelast = datetime.datetime.now()
-timelast = timelast.replace(day = timelast.day - 2)
-timelast = timelast.replace(hour = timelast.hour - 2)
 
-APP_KEY = "XX"
+starting = 0 #this allows me to bypass the timer to test the system by watering more than once per hour
+
+APP_KEY = "XX" #you'll need your own credentials for your account
 APP_SECRET = 'XX'
 OAUTH_TOKEN = 'XX'
 OAUTH_TOKEN_SECRET = 'XX'
 
-twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET) #creates an instance of twython API
 
 # Search terms
-TERMS = '@RobbiesPlantBot water yourself'
-#TERMS = 'twitter'
+TERMS = '@RobbiesPlantBot water yourself' #this is what the program scans twitter for - the magic words
+#TERMS = 'twitter' #this is for testing, since the word twitter comes up all the time. 
 
 
-def water(tweet_str, scr_name):
-    relay_pin = 23
-    camera = PiCamera()
+def water(tweet_str, scr_name): #the function that waters the plant
+    relay_pin = 23 #sets the pin that triggers the relay
+    camera = PiCamera() 
     camera.start_preview()
     camera.start_recording('/home/pi/Documents/plantvid.h264')
     time.sleep(1)
@@ -45,22 +45,27 @@ def water(tweet_str, scr_name):
     timerightnow = datetime.datetime.now().strftime("%H:%M:%S")
     timesaver = datetime.datetime.now()
     os.system("rm plantvid.h264")
-    with open("/home/pi/Documents/plantvid.mp4", 'rb') as vid:
+    with open("/home/pi/Documents/plantvid.mp4", 'rb') as vid: #this "with open" section is quite buggy - be very careful
         response = twitter.upload_video(media=vid, media_type='video/mp4')
         print(response['media_id'])
         speech = str("@{} You helped me water myself at {}".format(scr_name, timerightnow))
-        print(speech)
+        print(speech) 
+        #had a nightmare working out this section, but it's easy to implement. The twython package needs a bit of an update. 
+        #The module "endpoints.py" needs every mention of "StringIO" changed to "BytesIO" when used on a raspberry pi.
+        #Nightmare because it works when testing on a windows comp, but needs changing for RPi!
         twitter.update_status(status=speech, media_ids=[response['media_id']], in_reply_to_status_id=tweet_str)
     pickle_out = open("timefile", "wb")
     print(timesaver)
     pickle.dump(timesaver, pickle_out)
     pickle_out.close
     starting = 0
-
+    
+#function for when it's too early to water again.
 def nowater(tweet_str, scr_name, timefuture):
     speech = str("@{} I can't be watered more than once per hour. You can next water me at {} GMT".format(scr_name, timefuture))
     twitter.update_status(status=speech, in_reply_to_status_id=tweet_str)
 
+#extremely ugly code to work out if the plant has been watered in the last hour. Truly awful and doesn't work well.
 def timer():
     timenow = datetime.datetime.now()
     pickle_in = open("timefile", "rb")
@@ -105,7 +110,7 @@ class BlinkyStreamer(TwythonStreamer):
                 timenext = [(timelast.hour + 1), (timelast.minute)]
                 if timenext[0] == 25:
                     timenext[0] = 0
-                timefuture = str("{}:{}".format(timenext[0], timenext[1]))
+                timefuture = str("{}:{}".format(timenext[0], timenext[1])) #god forgive me for this line
                 nowater(tweet_str, scr_name, timefuture)
 
     def on_error(self, status_code, data):
